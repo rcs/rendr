@@ -59,6 +59,8 @@ ServerRouter.prototype.getHandler = function(action, pattern, route) {
       return;
     }
 
+    console.log('DEBUG getHandler: %j; %j', route, params);
+
     app = req.rendrApp;
     context = {
       currentRoute: route,
