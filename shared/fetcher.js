@@ -176,7 +176,7 @@ Fetcher.prototype._retrieveModel = function(spec, callback) {
     }
 
     // Attempt to fetch the model in the modelStore based on the other params
-    allback(null, fetcher.modelStore.find(spec.model, spec.params));
+    callback(null, fetcher.modelStore.find(spec.model, spec.params));
   });
 };
 
