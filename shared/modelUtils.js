@@ -8,7 +8,7 @@ var requireAMD = require;
 var typePath = {
   model: "app/models/",
   collection: "app/collections/"
-}
+};
 
 var BaseCollection, BaseModel, classMap, uppercaseRe, utils;
 
@@ -18,7 +18,6 @@ BaseCollection = require('./base/collection');
 utils = module.exports;
 
 utils.getModel = function(path, attrs, options, callback) {
-  var Model;
   attrs = attrs || {};
   options = options || {};
   if (typeof callback == 'function') {
@@ -26,13 +25,12 @@ utils.getModel = function(path, attrs, options, callback) {
       callback(new Model(attrs, options));
     });
   } else {
-    Model = utils.getModelConstructor(path);
+    var Model = utils.getModelConstructor(path);
     return new Model(attrs, options);
   }
 };
 
 utils.getCollection = function(path, models, options, callback) {
-  var Collection;
   models = models || [];
   options = options || {};
   if (typeof callback == 'function') {
@@ -40,7 +38,7 @@ utils.getCollection = function(path, models, options, callback) {
       callback(new Collection(models, options));
     });
   } else {
-    Collection = utils.getCollectionConstructor(path);
+    var Collection = utils.getCollectionConstructor(path);
     return new Collection(models, options);
   }
 };
@@ -56,24 +54,19 @@ utils.getCollectionConstructor = function(path, callback) {
 utils._fetchConstructor = function(type, path, callback) {
   path = utils.underscorize(path);
 
-  var fullPath = rendr.entryPath + typePath[type] + path;
-
   if (classMap[path]) {
     return (typeof callback == 'function') ? callback(classMap[path]) : classMap[path];
   } else if (typeof callback == 'function') {
+    var fullPath = rendr.entryPath + typePath[type] + path;
+
     // Only used in AMD environment
-    if (typeof define != 'undefined')
-    {
+    if (typeof define != 'undefined') {
       requireAMD([fullPath], callback);
-    }
-    else
-    {
+    } else {
       callback(require(fullPath));
     }
     return;
-  }
-  else
-  {
+  } else {
     return require(fullPath);
   }
 }
@@ -146,8 +139,7 @@ utils.modelName = function(modelOrCollectionClass) {
 };
 
 utils.modelIdAttribute = function(modelName, callback) {
-  utils.getModelConstructor(modelName, function(constructor)
-  {
+  utils.getModelConstructor(modelName, function(constructor) {
     callback(constructor.prototype.idAttribute);
   });
 };

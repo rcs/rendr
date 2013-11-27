@@ -100,23 +100,23 @@ ClientRouter.prototype.addBackboneRoute = function(routeObj) {
 ClientRouter.prototype.getHandler = function(action, pattern, route) {
   var router = this;
 
-  // abstract action call
-  function actionCall(action, params)
-  {
+  function actionCall(action, params) {
+    if (typeof action !== 'function') {
+      throw new Error("Missing action \"" + route.action + "\" for controller \"" + route.controller + "\"");
+    }
     action.call(router, params, router.getRenderCallback(route));
   }
 
   // This returns a function which is called by Backbone.history.
   return function() {
-    var params, paramsArray, views, redirect;
+    var params, paramsArray, redirect;
 
     router.trigger('action:start', route, firstRender);
     router.currentRoute = route;
 
     if (firstRender) {
       firstRender = false;
-      BaseView.attach(router.app, null, function(views)
-      {
+      BaseView.attach(router.app, null, function(views) {
         router.currentView = router.getMainView(views);
         router.trigger('action:end', route, true);
       });
@@ -131,27 +131,13 @@ ClientRouter.prototype.getHandler = function(action, pattern, route) {
       if (redirect != null) {
         router.redirectTo(redirect, {replace: true});
       } else {
-        if (!action) {
-          throw new Error("Missing action \"" + route.action + "\" for controller \"" + route.controller + "\"");
-        }
-        // in AMD environment action is the string containing path to the controller
-        // which will be loaded async (might be preloaded)
-        else if (typeof action == 'string')
-        {
-          // Only used in AMD environment
-          requireAMD([action], function(controller)
-          {
-            // check we have everything we need
-            if (typeof controller[route.action] != 'function')
-            {
-              throw new Error("Missing action \"" + route.action + "\" for controller \"" + route.controller + "\"");
-            }
-
+        // In AMD environment action is the string containing path to the controller
+        // which will be loaded async (might be preloaded).
+        if (typeof action === 'string') {
+          requireAMD([action], function(controller) {
             actionCall(controller[route.action], params);
           });
-        }
-        else
-        {
+        } else {
           actionCall(action, params);
         }
       }
@@ -249,7 +235,7 @@ ClientRouter.prototype.getRenderCallback = function(route) {
   return function(err, viewPath, locals) {
     if (err) return this.handleErr(err, route);
 
-    var View, _router = this;
+    var router = this;
 
     if (this.currentView) {
       this.currentView.remove();
@@ -262,12 +248,11 @@ ClientRouter.prototype.getRenderCallback = function(route) {
 
     // Inject the app.
     locals.app = this.app;
-    this.getView(viewPath, function(View)
-    {
-      _router.currentView = new View(locals);
-      _router.renderView();
+    this.getView(viewPath, function(View) {
+      router.currentView = new View(locals);
+      router.renderView();
 
-      _router.trigger('action:end', route, firstRender);
+      router.trigger('action:end', route, firstRender);
     });
   }.bind(this);
 };
@@ -289,8 +274,7 @@ ClientRouter.prototype.trackAction = function() {
 };
 
 ClientRouter.prototype.getView = function(key, callback) {
-  var View = BaseView.getView(key, function(View)
-  {
+  BaseView.getView(key, function(View) {
     // TODO: Make it function (err, View)
     if (!_.isFunction(View)) {
       throw new Error("View '" + key + "' not found.");
